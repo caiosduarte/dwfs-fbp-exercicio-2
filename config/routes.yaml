@@ -1,0 +1,6 @@
+controllers:
+    resource: "../src/Controller/"
+    type: annotation
+#users_index:
+#    path: /users
+#    controller: App\Controller\UserController::listAction
