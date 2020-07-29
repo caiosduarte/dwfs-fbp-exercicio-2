@@ -149,7 +149,7 @@ class UserController
 
         foreach($users as $user)
         {
-            $data[] = $this->serializeUser($user);
+            $data[] = DeserializeUserService::execute($user);
         }
 
         return new JsonResponse($data, Response::HTTP_OK);
@@ -162,7 +162,7 @@ class UserController
     {
         $getUserService = new GetUserService($this->manager);
         $user = $getUserService->execute($id);
-        
+
         return new JsonResponse(DeserializeUserService::execute($user));
     }    
 }
