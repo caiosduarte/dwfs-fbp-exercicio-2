@@ -18,14 +18,14 @@ class DeleteUserService {
 
     public function execute($userId): void 
     {
+        $user = $this->manager->getRepository(User::class)->find($userId);
+
+        if(!$user) {
+            throw new AppError('User not found.', Response::HTTP_NOT_FOUND);    
+        }
+
         try 
         {            
-            $user = $this->manager->getRepository(User::class)->find($userId);
-
-            if(!$user) {
-                throw new AppError('User not found.', Response::HTTP_NOT_FOUND);    
-            }
-
             $this->manager->remove($user);
             $this->manager->flush();
         }
