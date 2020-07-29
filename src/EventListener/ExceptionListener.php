@@ -22,7 +22,7 @@ class ExceptionListener
         ];         
 
         if (!$exception instanceof AppError) {
-            // loga o erro
+            // loga o erro verdadeiro
             sprintf('*** Error: %s with code: %s',
                 $exception->getMessage(),
                 $exception->getCode()
