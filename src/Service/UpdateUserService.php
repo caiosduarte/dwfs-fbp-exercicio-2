@@ -15,7 +15,7 @@ class UpdateUserService {
         $this->manager = $manager;
     }
 
-    public function execute(UserRequest $userRequest): void 
+    public function execute($user): void 
     {
         /*
         $data = json_decode($request->getContent(), true);

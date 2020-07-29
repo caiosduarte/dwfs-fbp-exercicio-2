@@ -5,7 +5,7 @@ namespace App\Service;
 use App\Entity\User;
 use App\Entity\Telephone;
 
-class DeserializeUserService {
+final class DeserializeUserService {
 
     public static function execute(User $user): array 
     {
