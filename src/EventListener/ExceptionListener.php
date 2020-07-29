@@ -22,10 +22,15 @@ class ExceptionListener
         ];         
 
         if (!$exception instanceof AppError) {
+            // loga o erro
+            sprintf('*** Error: %s with code: %s',
+                $exception->getMessage(),
+                $exception->getCode()
+            );
             $event->setResponse(new JsonResponse($responseData, Response::HTTP_INTERNAL_SERVER_ERROR));
         } else {
-            $responseData['message'] = $exception->message;
-            $event->setResponse(new JsonResponse($responseData, $exception->statusCode));
+            $responseData['message'] = $exception->getMessage();
+            $event->setResponse(new JsonResponse($responseData, $exception->getCode()));
         }        
     }
 }

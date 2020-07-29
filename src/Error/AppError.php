@@ -6,12 +6,10 @@ namespace App\Error;
 
 class AppError extends \Exception
 {
-    public $message;
-    public $statusCode;
-
-    public function __construct(string $message, $statusCode = 400)
+    public function __construct(string $message, $code = 400)
     {        
         $this->message = $message;
-        $this->statusCode = $statusCode;
+        $this->code = $code;
     }
+
 }
