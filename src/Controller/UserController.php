@@ -47,19 +47,11 @@ class UserController
      */
     public function delete(int $id) 
     {
-        try {
-            $deleteUserService = new DeleteUserService($this->manager);
-            $deleteUserService->execute($id);
-        } catch(AppError $ex) {
-            return new JsonResponse([
-                'status' => 'error',
-                'message' => $ex->message 
-            ], $ex->statusCode);
-        }
+        $deleteUserService = new DeleteUserService($this->manager);
+        $deleteUserService->execute($id);
 
         return new JsonResponse([], Response::HTTP_NO_CONTENT);        
-    }
-    
+    }    
 
     /**
      * @Route("/users/{id}", methods={"PUT"})

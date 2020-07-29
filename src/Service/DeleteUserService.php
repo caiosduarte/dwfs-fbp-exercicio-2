@@ -2,11 +2,9 @@
 
 namespace App\Service;
 
-use Symfony\Component\HttpFoundation\Response;
 use Doctrine\ORM\EntityManagerInterface;
 
 use App\Error\AppError;
-use App\Entity\User;
 
 class DeleteUserService {
     private EntityManagerInterface $manager;
@@ -29,7 +27,7 @@ class DeleteUserService {
         }
         catch(\Exception $ex) 
         {
-            throw new AppError('Internal error exception.', Response::HTTP_INTERNAL_SERVER_ERROR);
+            throw new AppError('Internal error exception.', 500);
         }        
     }
 
