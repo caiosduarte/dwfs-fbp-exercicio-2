@@ -10,8 +10,10 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+use App\Error\AppError;
 use App\Entity\Telephone;
 use App\Entity\User;
+use App\Service\DeleteUserService;
 
 class UserController
 {
@@ -45,20 +47,14 @@ class UserController
      */
     public function delete(int $id) 
     {
-        try 
-        {
-            $user = $this->manager->getRepository(User::class)->find($id);
-
-            if(!$user) {
-                return new JsonResponse(['error'=>'User not found'], Response::HTTP_NOT_FOUND);    
-            }
-
-            $this->manager->remove($user);
-            $this->manager->flush();
-        }
-        catch(\Exception $ex) 
-        {
-            return new JsonResponse(['error' => 'Internal error'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        try {
+            $deleteUserService = new DeleteUserService($this->manager);
+            $deleteUserService->execute($id);
+        } catch(AppError $ex) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => $ex->message 
+            ], $ex->statusCode);
         }
 
         return new JsonResponse([], Response::HTTP_NO_CONTENT);        
