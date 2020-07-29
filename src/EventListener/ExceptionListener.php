@@ -26,8 +26,6 @@ class ExceptionListener
         } else {
             $responseData['message'] = $exception->message;
             $event->setResponse(new JsonResponse($responseData, $exception->statusCode));
-        }
-
-        
+        }        
     }
 }

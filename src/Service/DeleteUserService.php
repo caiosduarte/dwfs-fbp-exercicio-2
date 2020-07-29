@@ -4,10 +4,8 @@ namespace App\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
 
-use App\Error\AppError;
-
 class DeleteUserService {
-    private EntityManagerInterface $manager;
+    protected EntityManagerInterface $manager;
 
     public function __construct(EntityManagerInterface $manager)
     {
@@ -17,18 +15,9 @@ class DeleteUserService {
     public function execute($userId): void 
     {
         $getUserService = new GetUserService($this->manager);
-
         $user = $getUserService->execute($userId); 
-
-        try 
-        {            
-            $this->manager->remove($user);
-            $this->manager->flush();
-        }
-        catch(\Exception $ex) 
-        {
-            throw new AppError('Internal error exception.', 500);
-        }        
+        
+        $this->manager->remove($user);
+        $this->manager->flush();
     }
-
 }

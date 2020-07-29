@@ -11,9 +11,12 @@ use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 use App\Error\AppError;
+use App\Service\UserRequest;
 use App\Entity\Telephone;
 use App\Entity\User;
 use App\Service\DeleteUserService;
+use App\Service\DeserializeUserService;
+use App\Service\GetUserService;
 
 class UserController
 {
@@ -26,21 +29,6 @@ class UserController
         $this->manager = $manager; 
         $this->validator = $validator;       
     }
-
-    private function serializeUser(User $user) 
-    {       
-        $data = [
-                'id' => $user->getId(),
-                'name' => $user->getName(),
-                'email' => $user->getEmail(),
-                'telephones' => array_map(fn(Telephone $telephone) => 
-                                             $telephone->getNumber(), 
-                                            iterator_to_array($user->getTelephones())),
-                'createdDate' => ($user->getCreatedDate()? $user->getCreatedDate()->format('d/m/Y H:i:s') : null)
-        ];
-
-        return $data;
-    }    
 
     /**
      * @Route("/users/{id}", methods={"DELETE"})
@@ -58,16 +46,22 @@ class UserController
      */
     public function update(Request $request, int $id) {
         $data = json_decode($request->getContent(), true);
+        $data['id'] = $id;
 
         $user = $this->manager->getRepository(User::class)->findOneBy(['id' => $id]);
 
         if(!$user) {
             return new JsonResponse(['error' => 'User not found'], Response::HTTP_NOT_FOUND);    
-        }
+        }   
+
+        $user->getTelephones()->clear();
+
+        //$user2 = $this->deserializeUser($data);
+        //dump($user2);
 
         $user->setName($data['name']);
         $user->setEmail($data['email']);
-        $user->getTelephones()->clear();
+        
         
         foreach($data['telephones'] as $telephone) 
         {
@@ -97,7 +91,7 @@ class UserController
             return new JsonResponse(['error' => 'Internal error: ' . $ex->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
-        return new JsonResponse($this->serializeUser($user), Response::HTTP_OK);        
+        return new JsonResponse(DeserializeUserService::execute($user), Response::HTTP_OK);        
     }
 
     /**
@@ -140,7 +134,7 @@ class UserController
         }
 
         $location = $request->getUriForPath("/users/" . $user->getId());
-        return new JsonResponse($this->serializeUser($user), Response::HTTP_CREATED, [            
+        return new JsonResponse(DeserializeUserService::execute($user), Response::HTTP_CREATED, [            
             "Location" => $location
         ]);
     }
@@ -166,14 +160,9 @@ class UserController
      */
     public function get(int $id): Response 
     {
-        $user = $this->manager->getRepository(User::class)->findOneBy(['id'=>$id]);
-
-        if ($user) {
-            $serializedUser = $this->serializeUser($user);
-
-            return new JsonResponse($serializedUser);
-        } else {
-            return new JsonResponse(['error' => 'User not found'], Response::HTTP_NOT_FOUND);
-        }
+        $getUserService = new GetUserService($this->manager);
+        $user = $getUserService->execute($id);
+        
+        return new JsonResponse(DeserializeUserService::execute($user));
     }    
 }
