@@ -18,11 +18,9 @@ class DeleteUserService {
 
     public function execute($userId): void 
     {
-        $user = $this->manager->getRepository(User::class)->find($userId);
+        $getUserService = new GetUserService($this->manager);
 
-        if(!$user) {
-            throw new AppError('User not found.', Response::HTTP_NOT_FOUND);    
-        }
+        $user = $getUserService->execute($userId); 
 
         try 
         {            
