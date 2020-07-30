@@ -31,7 +31,7 @@ class ExceptionListener
                 $responseData['message'] = $exception->getMessage();
                 $statusCode =  Response::HTTP_NOT_IMPLEMENTED;
             }
-            $event->setResponse(new JsonResponse($responseData, $statusCode));
+            //$event->setResponse(new JsonResponse($responseData, $statusCode));
         } else {
             $responseData['message'] = $exception->getMessage();
             $event->setResponse(new JsonResponse($responseData, $exception->getCode()));

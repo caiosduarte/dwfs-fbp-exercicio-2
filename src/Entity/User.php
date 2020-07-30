@@ -39,9 +39,9 @@ class User
     private ?\DateTime $createdDate = null;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Telephone", mappedBy="user", orphanRemoval=true, cascade={"persist", "remove", "refresh", "detach"})
      * @Assert\Count(min="1", max="10")          
      * @Assert\Valid()
+     * @ORM\OneToMany(targetEntity="App\Entity\Telephone", mappedBy="user", orphanRemoval=true, cascade={"persist", "remove", "refresh", "detach"})
      */
     private Collection $telephones;
 
@@ -62,9 +62,14 @@ class User
         $this->telephones->clear();
     }    
 
-    public function getTelephones() 
+    public function getTelephones(): Collection
     {
         return $this->telephones;
+    }
+
+    public function setTelephones(Collection $telephones) 
+    {
+        $this->telephones = $telephones;
     }
 
     public function getId(): ?int

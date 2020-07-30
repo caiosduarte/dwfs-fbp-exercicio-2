@@ -3,21 +3,24 @@
 namespace App\Service;
 
 use App\Entity\User;
+use App\Entity\Telephone;
 
-class SerializeUserService {
-
-    public static function execute(array $userRequest): User 
+class SerializeUserService 
+{
+    public static function execute(User $user): array 
     {
-        $user = new User($userRequest['name'], $userRequest['email']);
+        $data = [
+                'id' => $user->getId(),
+                'name' => $user->getName(),
+                'email' => $user->getEmail(),
+                'telephones' => array_map(fn(Telephone $telephone) => 
+                                             $telephone->getNumber(), 
+                                            iterator_to_array($user->getTelephones())),
+                'createdDate' => ($user->getCreatedDate()? $user->getCreatedDate()->format('d/m/Y H:i:s') : null)
+        ];
 
-        $user->setId($userRequest['id']);
-
-        foreach($userRequest['telephones'] as $telephone) 
-        {
-            $user->addTelephone($telephone['number']);
-        }          
-
-        return $user;
+        return $data;
     }
+
 }
     

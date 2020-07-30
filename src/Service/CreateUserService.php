@@ -7,7 +7,7 @@ use App\Entity\User;
 use App\Error\AppError;
 
 
-class UpdateUserService {
+class CreateUserService {
     private EntityManagerInterface $manager;
 
     public function __construct(EntityManagerInterface $manager)
@@ -21,22 +21,12 @@ class UpdateUserService {
         $validateUserService = new ValidateUserService($this->manager);
         $validatedUser = $validateUserService->execute($userFromRequest);
 
-        $getUserService = new GetUserService($this->manager);
-        $user = $getUserService->execute($validatedUser->getId());
-
-        $user->setName($validatedUser->getName());
-        $user->setEmail($validatedUser->getEmail());
-        $user->clearTelephones();
-
-        foreach($validatedUser->getTelephones() as $telephone) 
-        {
-            $user->addTelephone($telephone->getNumber());
-        }          
+        $validatedUser->setCreatedDate(new \DateTime());
 
         try 
         {            
             $this->manager->beginTransaction();                 
-            $this->manager->persist($user);          
+            $this->manager->persist($validatedUser);          
             $this->manager->flush();
             $this->manager->commit();
         }
@@ -46,7 +36,7 @@ class UpdateUserService {
             throw new AppError("Error Processing Request: " . $ex->getMessage(), 500);            
         }
 
-        return $user;  
+        return $validatedUser;  
 
     }
 }

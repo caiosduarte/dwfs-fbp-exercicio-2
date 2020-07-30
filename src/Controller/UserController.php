@@ -7,27 +7,22 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Validator\ConstraintViolationInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-use App\Error\AppError;
-use App\Service\UserRequest;
-use App\Entity\Telephone;
 use App\Entity\User;
 use App\Service\DeleteUserService;
 use App\Service\DeserializeUserService;
+use App\Service\SerializeUserService;
 use App\Service\GetUserService;
+use App\Service\UpdateUserService;
+use App\Service\CreateUserService;
 
 class UserController
 {
     private EntityManagerInterface $manager;
-    private ValidatorInterface $validator;
 
-    public function __construct(EntityManagerInterface $manager, 
-        ValidatorInterface $validator)
+    public function __construct(EntityManagerInterface $manager)
     {
         $this->manager = $manager; 
-        $this->validator = $validator;       
     }
 
     /**
@@ -45,53 +40,14 @@ class UserController
      * @Route("/users/{id}", methods={"PUT"})
      */
     public function update(Request $request, int $id) {
+
         $data = json_decode($request->getContent(), true);
         $data['id'] = $id;
 
-        $user = $this->manager->getRepository(User::class)->findOneBy(['id' => $id]);
+        $updateUserService = new UpdateUserService($this->manager);
+        $user = $updateUserService->execute(DeserializeUserService::execute($data));
 
-        if(!$user) {
-            return new JsonResponse(['error' => 'User not found'], Response::HTTP_NOT_FOUND);    
-        }   
-
-        $user->getTelephones()->clear();
-
-        //$user2 = $this->deserializeUser($data);
-        //dump($user2);
-
-        $user->setName($data['name']);
-        $user->setEmail($data['email']);
-        
-        
-        foreach($data['telephones'] as $telephone) 
-        {
-            $user->addTelephone($telephone['number']);
-        }  
-
-        $errors = $this->validator->validate($user);
-
-        if (count($errors) > 0) {
-            $violations = array_map(fn(ConstraintViolationInterface $violation) => [
-                'property' => $violation->getPropertyPath(),
-                'message' => $violation->getMessage()
-            ], iterator_to_array($errors));
-            return new JsonResponse($violations, Response::HTTP_BAD_REQUEST);
-        }          
-
-        try 
-        {
-            $this->manager->beginTransaction();      
-            $this->manager->persist($user);          
-            $this->manager->flush();
-            $this->manager->commit();
-        }
-        catch(\Exception $ex) 
-        {
-            $this->manager->rollback();
-            return new JsonResponse(['error' => 'Internal error: ' . $ex->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-
-        return new JsonResponse(DeserializeUserService::execute($user), Response::HTTP_OK);        
+        return new JsonResponse(SerializeUserService::execute($user), Response::HTTP_OK);        
     }
 
     /**
@@ -101,41 +57,11 @@ class UserController
     {
         $data = json_decode($request->getContent(), true);
 
-        $user = new User($data['name'], $data['email']);
+        $updateUserService = new CreateUserService($this->manager);
+        $user = $updateUserService->execute(DeserializeUserService::execute($data));
 
-        foreach($data['telephones'] as $telephone) 
-        {
-            $user->addTelephone($telephone['number']);
-        }
-        
-        $user->setCreatedDate(new \DateTime());
-
-        $errors = $this->validator->validate($user);
-
-        if (count($errors) > 0) {
-            $violations = array_map(fn(ConstraintViolationInterface $violation) => [
-                'property' => $violation->getPropertyPath(),
-                'message' => $violation->getMessage()
-            ], iterator_to_array($errors));
-            return new JsonResponse($violations, Response::HTTP_BAD_REQUEST);
-        }  
-
-        try 
-        {
-            $this->manager->beginTransaction();
-            $this->manager->persist($user);
-            $this->manager->flush();
-            $this->manager->commit();
-        }
-        catch(\Exception $ex)
-        {
-            $this->manager->rollback();
-            return new JsonResponse(['error' => "Internal error " .  $ex->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-
-        $location = $request->getUriForPath("/users/" . $user->getId());
-        return new JsonResponse(DeserializeUserService::execute($user), Response::HTTP_CREATED, [            
-            "Location" => $location
+        return new JsonResponse(SerializeUserService::execute($user), Response::HTTP_CREATED, [            
+            "Location" => $request->getUriForPath("/users/" . $user->getId())
         ]);
     }
 
@@ -149,7 +75,7 @@ class UserController
 
         foreach($users as $user)
         {
-            $data[] = DeserializeUserService::execute($user);
+            $data[] = SerializeUserService::execute($user);
         }
 
         return new JsonResponse($data, Response::HTTP_OK);
@@ -163,6 +89,6 @@ class UserController
         $getUserService = new GetUserService($this->manager);
         $user = $getUserService->execute($id);
 
-        return new JsonResponse(DeserializeUserService::execute($user));
+        return new JsonResponse(SerializeUserService::execute($user));
     }    
 }
