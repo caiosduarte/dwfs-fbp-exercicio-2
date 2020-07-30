@@ -5,9 +5,7 @@ namespace App\Service;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\ValidatorBuilder;
 
-
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Common\Collections\Criteria;
 
 use App\Entity\User;
 use App\Error\AppError;
@@ -37,7 +35,7 @@ class ValidateUserService {
         }       
 
 
-         $userWithEmailExists = 
+        $userWithEmailExists = 
             $this->manager->getRepository(User::class)
             ->findOneBy(['email' => $userNotValid->getEmail()]);
 
