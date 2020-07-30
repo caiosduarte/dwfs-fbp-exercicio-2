@@ -29,7 +29,7 @@ class User
     /**
      * @ORM\Column()
      * @Assert\NotBlank(normalizer="trim")  
-     * @Assert\Email()
+     * @Assert\Email(normalizer="strtolower")
      */
     private ?string $email = null;
 
@@ -39,16 +39,16 @@ class User
     private ?\DateTime $createdDate = null;
 
     /**
-     * @Assert\Count(min="1", max="10")          
-     * @Assert\Valid()
      * @ORM\OneToMany(targetEntity="App\Entity\Telephone", mappedBy="user", orphanRemoval=true, cascade={"persist", "remove", "refresh", "detach"})
+     * @Assert\Count(min="1", max="10")          
+     * @Assert\Valid()     
      */
     private Collection $telephones;
 
     public function __construct($name, $email)
     {
         $this->name = $name;
-        $this->email = $email;
+        $this->email = strtolower($email);
         $this->telephones = new ArrayCollection();
     }
 

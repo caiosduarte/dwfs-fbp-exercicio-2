@@ -2,6 +2,8 @@
 
 namespace App\Service;
 
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\User;
 use App\Error\AppError;
@@ -9,17 +11,18 @@ use App\Error\AppError;
 
 class UpdateUserService {
     private EntityManagerInterface $manager;
+    private ValidatorInterface $validator;
 
-    public function __construct(EntityManagerInterface $manager)
+    public function __construct(EntityManagerInterface $manager, 
+        ValidatorInterface $validator)
     {
         $this->manager = $manager;
+        $this->validator = $validator;
     }
 
     public function execute($userFromRequest): User 
     {
-        
-        $validateUserService = new ValidateUserService($this->manager);
-        $validatedUser = $validateUserService->execute($userFromRequest);
+        $validatedUser = (new ValidateUserService($this->manager, $this->validator))->execute($userFromRequest);
 
         $getUserService = new GetUserService($this->manager);
         $user = $getUserService->execute($validatedUser->getId());

@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,10 +21,13 @@ use App\Service\ListUsersService;
 class UserController
 {
     private EntityManagerInterface $manager;
+    private ValidatorInterface $validator;
 
-    public function __construct(EntityManagerInterface $manager)
+    public function __construct(EntityManagerInterface $manager, 
+        ValidatorInterface $validator)
     {
-        $this->manager = $manager; 
+        $this->manager = $manager;
+        $this->validator = $validator;
     }
 
     /**
@@ -44,7 +49,7 @@ class UserController
         $data = json_decode($request->getContent(), true);
         $data['id'] = $id;
 
-        $updateUserService = new UpdateUserService($this->manager);
+        $updateUserService = new UpdateUserService($this->manager, $this->validator);
         $user = $updateUserService->execute(DeserializeUserService::execute($data));
 
         return new JsonResponse(SerializeUserService::execute($user), Response::HTTP_OK);        
@@ -57,7 +62,7 @@ class UserController
     {
         $data = json_decode($request->getContent(), true);
 
-        $updateUserService = new CreateUserService($this->manager);
+        $updateUserService = new CreateUserService($this->manager, $this->validator);
         $user = $updateUserService->execute(DeserializeUserService::execute($data));
 
         return new JsonResponse(SerializeUserService::execute($user), Response::HTTP_CREATED, [            

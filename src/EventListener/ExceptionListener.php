@@ -25,15 +25,19 @@ class ExceptionListener
                 $exception->getMessage(),
                 $exception->getCode()
             );
-            //echo $messageLog;
+            
             $statusCode =  Response::HTTP_INTERNAL_SERVER_ERROR;
             if ($exception->getCode() == 0 && strpos($exception->getMessage(), "No route found for") !== false) {
                 $responseData['message'] = $exception->getMessage();
                 $statusCode =  Response::HTTP_NOT_IMPLEMENTED;
             }
             $event->setResponse(new JsonResponse($responseData, $statusCode));
+            //echo $messageLog;
         } else {
             $responseData['message'] = $exception->getMessage();
+            if(count($exception->getErrors()) > 0) {
+             $responseData['errors'] = $exception->getErrors();
+            }
             $event->setResponse(new JsonResponse($responseData, $exception->getCode()));
         }        
     }

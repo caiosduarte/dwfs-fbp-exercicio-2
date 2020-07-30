@@ -29,6 +29,7 @@ class Telephone
 
     /**
      * @ORM\Column()
+     * @Assert\Length(min="8", max="15", normalizer="trim")  
      * @Assert\Regex(pattern="/\+?\d{8,14}/", match="true", normalizer="trim")     
      */
     private string $number;
