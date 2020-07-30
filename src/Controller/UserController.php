@@ -8,13 +8,13 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-use App\Entity\User;
 use App\Service\DeleteUserService;
 use App\Service\DeserializeUserService;
 use App\Service\SerializeUserService;
 use App\Service\GetUserService;
 use App\Service\UpdateUserService;
 use App\Service\CreateUserService;
+use App\Service\ListUsersService;
 
 class UserController
 {
@@ -70,7 +70,7 @@ class UserController
      */
     public function index(): Response 
     {
-        $users = $this->manager->getRepository(User::class)->findAll();
+        $users = (new ListUsersService($this->manager))->execute();
         $data = [];
 
         foreach($users as $user)

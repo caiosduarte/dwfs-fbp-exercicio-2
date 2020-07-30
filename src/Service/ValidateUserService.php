@@ -36,18 +36,16 @@ class ValidateUserService {
             //return new AppError($violations, 400);
         }       
 
-        $emailExists = $this->manager->createQueryBuilder()
-        ->select('*')->from('User', 'user')
-        ->where("(id <> ?1 OR id IS NULL)")
-        ->andWhere("email = ?2")
-        ->setParameter(1, $userNotValid->getId())
-        ->setParameter(2, $userNotValid->getEmail())
-        ->getFirstResult();
 
-        if ($emailExists) {
+         $userWithEmailExists = 
+            $this->manager->getRepository(User::class)
+            ->findOneBy(['email' => $userNotValid->getEmail()]);
+
+
+        if ($userWithEmailExists && $userWithEmailExists->getId() !== $userNotValid->getId()) {
             throw new AppError("Email already exists.", 400);
         }
-
+        
         return $userNotValid;
     }
 }
