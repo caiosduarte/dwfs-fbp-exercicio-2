@@ -14,15 +14,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-use App\Service\DeleteUserService;
 use App\Service\DeserializeUserService;
 use App\Service\SerializeUserService;
-use App\Service\GetUserService;
 use App\Service\UpdateUserService;
 use App\Service\CreateUserService;
 use App\Service\ListUsersService;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
+use Symfony\Component\Messenger\Envelope;
 
 class UserController
 {
@@ -100,9 +99,14 @@ class UserController
     public function get(int $id): Response 
     {
         $wrapper =  $this->bus->dispatch(new GetUserMessage($id));        
-        $handled = $wrapper->last(HandledStamp::class);            
-        $user = $handled->getResult();
+                
+        $user = $this->getResultFromWrapper($wrapper);
 
         return new JsonResponse(SerializeUserService::execute($user));
     }    
+
+    private function getResultFromWrapper(Envelope $wrapper) {
+        $handled = $wrapper->last(HandledStamp::class);    
+        return $handled->getResult();
+    }
 }
