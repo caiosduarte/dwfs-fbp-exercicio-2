@@ -2,7 +2,11 @@
 
 namespace App\Controller;
 
+use App\Message\RemoveUserMessage;
+use App\Message\GetUserMessage;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+
+
 
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,27 +21,31 @@ use App\Service\GetUserService;
 use App\Service\UpdateUserService;
 use App\Service\CreateUserService;
 use App\Service\ListUsersService;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\HandledStamp;
 
 class UserController
 {
+    private MessageBusInterface $bus;
     private EntityManagerInterface $manager;
     private ValidatorInterface $validator;
 
     public function __construct(EntityManagerInterface $manager, 
-        ValidatorInterface $validator)
+        ValidatorInterface $validator, 
+        MessageBusInterface $bus)
     {
         $this->manager = $manager;
         $this->validator = $validator;
+        $this->bus = $bus;
     }
 
     /**
      * @Route("/users/{id}", methods={"DELETE"})
      */
     public function delete(int $id) 
-    {
-        $deleteUserService = new DeleteUserService($this->manager);
-        $deleteUserService->execute($id);
-
+    {        
+        $this->bus->dispatch(new RemoveUserMessage($id));
+        
         return new JsonResponse([], Response::HTTP_NO_CONTENT);        
     }    
 
@@ -91,8 +99,9 @@ class UserController
      */
     public function get(int $id): Response 
     {
-        $getUserService = new GetUserService($this->manager);
-        $user = $getUserService->execute($id);
+        $wrapper =  $this->bus->dispatch(new GetUserMessage($id));        
+        $handled = $wrapper->last(HandledStamp::class);            
+        $user = $handled->getResult();
 
         return new JsonResponse(SerializeUserService::execute($user));
     }    

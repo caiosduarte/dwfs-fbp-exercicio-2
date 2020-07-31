@@ -1,13 +1,17 @@
 <?php
 
-namespace App\Service;
+namespace App\MessageHandler;
+
+use App\Message\UserMessage;
+use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 
 use Doctrine\ORM\EntityManagerInterface;
 
 use App\Error\AppError;
 use App\Entity\User;
 
-class GetUserService {
+final class GetUserMessageHandler implements MessageHandlerInterface
+{
     private EntityManagerInterface $manager;
 
     public function __construct(EntityManagerInterface $manager)
@@ -15,9 +19,9 @@ class GetUserService {
         $this->manager = $manager;
     }
 
-    public function execute($userId): User 
+    public function __invoke(UserMessage $message): User 
     {
-        $user = $this->manager->getRepository(User::class)->find($userId);
+        $user = $this->manager->getRepository(User::class)->find($message->getId());
 
         if(!$user) {
             throw new AppError('User not found.', 404);    
@@ -25,5 +29,4 @@ class GetUserService {
 
         return $user;
     }
-
 }
