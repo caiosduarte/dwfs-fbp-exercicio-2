@@ -100,13 +100,25 @@ class UserController
     {
         $wrapper =  $this->bus->dispatch(new GetUserMessage($id));        
                 
-        $user = $this->getResultFromWrapper($wrapper);
-
-        return new JsonResponse(SerializeUserService::execute($user));
+        return new JsonResponse($this->getSerializedFromWrapper($wrapper));
     }    
 
-    private function getResultFromWrapper(Envelope $wrapper) {
+    private function getSerializedFromWrapper(Envelope $wrapper): array {
         $handled = $wrapper->last(HandledStamp::class);    
-        return $handled->getResult();
+        $result = $handled->getResult();
+
+        $serialized = null;
+        if($result instanceof \ArrayAccess) {
+            foreach($result as $user)
+            {
+                $serialized[] = SerializeUserService::execute($user);
+            }           
+        }
+        else 
+        {
+            $serialized = SerializeUserService::execute($result);
+        }
+
+        return $serialized;
     }
 }
