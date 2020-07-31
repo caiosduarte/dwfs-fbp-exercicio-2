@@ -2,8 +2,9 @@
 
 namespace App\Controller;
 
-use App\Message\RemoveUserMessage;
 use App\Message\GetUserMessage;
+use App\Message\RemoveUserMessage;
+use App\Message\ListUsersMessage;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 
@@ -18,7 +19,6 @@ use App\Service\DeserializeUserService;
 use App\Service\SerializeUserService;
 use App\Service\UpdateUserService;
 use App\Service\CreateUserService;
-use App\Service\ListUsersService;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
 use Symfony\Component\Messenger\Envelope;
@@ -82,15 +82,9 @@ class UserController
      */
     public function index(): Response 
     {
-        $users = (new ListUsersService($this->manager))->execute();
-        $data = [];
+        $wrapper =  $this->bus->dispatch(new ListUsersMessage()); 
 
-        foreach($users as $user)
-        {
-            $data[] = SerializeUserService::execute($user);
-        }
-
-        return new JsonResponse($data, Response::HTTP_OK);
+        return new JsonResponse($this->getSerializedFromWrapper($wrapper), Response::HTTP_OK);
     } 
 
     /**
@@ -108,7 +102,8 @@ class UserController
         $result = $handled->getResult();
 
         $serialized = null;
-        if($result instanceof \ArrayAccess) {
+        if(is_array($result)) {
+            
             foreach($result as $user)
             {
                 $serialized[] = SerializeUserService::execute($user);
