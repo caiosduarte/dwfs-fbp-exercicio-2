@@ -16,10 +16,18 @@ class ExceptionListener
 
         $responseData = [
             'status' => 'error',
+            'code' => $exception->getCode(),
             'message' => 'Internal server error.'            
         ];         
 
-        if (!$exception instanceof AppError) {
+        if ($exception instanceof AppError || $exception->getCode() != 500) {
+            $responseData['message'] = $exception->getMessage();
+            if($exception instanceof AppError && count($exception->getErrors()) > 0) {
+             $responseData['errors'] = $exception->getErrors();
+            }
+            $event->setResponse(new JsonResponse($responseData, $exception->getCode()));
+
+        } else {
             // loga o erro verdadeiro
             $messageLog = sprintf('*** Error: %s with code: %s',
                 $exception->getMessage(),
@@ -32,13 +40,7 @@ class ExceptionListener
                 $statusCode =  Response::HTTP_NOT_IMPLEMENTED;
             }
             $event->setResponse(new JsonResponse($responseData, $statusCode));
-            echo $messageLog;
-        } else {
-            $responseData['message'] = $exception->getMessage();
-            if(count($exception->getErrors()) > 0) {
-             $responseData['errors'] = $exception->getErrors();
-            }
-            $event->setResponse(new JsonResponse($responseData, $exception->getCode()));
+            //echo $messageLog;            
         }        
     }
 }

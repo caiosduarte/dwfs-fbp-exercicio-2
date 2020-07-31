@@ -2,7 +2,7 @@
 
 namespace App\Message;
 
-final class RemoveUserMessage implements UserMessage
+final class RemoveUserMessage implements ExistsUserMessage
 {
     /*
      * Add whatever properties & methods you need to hold the

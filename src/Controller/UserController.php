@@ -19,9 +19,13 @@ use App\Service\DeserializeUserService;
 use App\Service\SerializeUserService;
 use App\Service\UpdateUserService;
 use App\Service\CreateUserService;
+
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
 use Symfony\Component\Messenger\Envelope;
+
+use App\Service\GetObjectsFromWrapper;
+use GetObjectsFromWrapper as GlobalGetObjectsFromWrapper;
 
 class UserController
 {
@@ -97,11 +101,10 @@ class UserController
         return new JsonResponse($this->getSerializedFromWrapper($wrapper));
     }    
 
-    private function getSerializedFromWrapper(Envelope $wrapper): array {
-        $handled = $wrapper->last(HandledStamp::class);    
-        $result = $handled->getResult();
+    private function getSerializedFromWrapper(Envelope $wrapper) {
+        $result = GlobalGetObjectsFromWrapper::execute($wrapper);
 
-        $serialized = null;
+        $serialized = [];
         if(is_array($result)) {
             
             foreach($result as $user)

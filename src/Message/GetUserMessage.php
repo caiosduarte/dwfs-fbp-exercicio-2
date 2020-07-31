@@ -2,7 +2,7 @@
 
 namespace App\Message;
 
-final class GetUserMessage implements UserMessage
+final class GetUserMessage implements ExistsUserMessage
 {
     /*
      * Add whatever properties & methods you need to hold the
