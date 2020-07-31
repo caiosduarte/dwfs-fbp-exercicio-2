@@ -14,7 +14,8 @@ use GetObjectsFromWrapper as GlobalGetObjectsFromWrapper;
 
 final class RemoveUserMessageHandler implements MessageHandlerInterface
 {
-    protected EntityManagerInterface $manager;
+    private EntityManagerInterface $manager;
+    private MessageBusInterface $bus;
 
     public function __construct(EntityManagerInterface $manager,
     MessageBusInterface $bus)
