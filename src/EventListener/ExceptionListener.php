@@ -18,13 +18,13 @@ class ExceptionListener
         $responseData = [
             'status' => 'error',
             'code' => $exception->getCode(),
-            'message' => 'Internal server error.' 
+            'message' => 'Internal server error.'            
         ];         
 
-        if (($exception instanceof AppError || $exception instanceof HandlerFailedException) || $exception->getCode() != 500) {
+        if ($exception instanceof AppError  || $exception->getCode() != 500) {
             $responseData['message'] = $exception->getMessage();
             if($exception instanceof AppError && count($exception->getErrors()) > 0) {
-             $responseData['errors'] = $exception->getErrors();
+                $responseData['errors'] = $exception->getErrors();
             }   
             $event->setResponse(new JsonResponse($responseData, $exception->getCode()));
 
