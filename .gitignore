@@ -1,4 +1,6 @@
 .idea
 vendor/
-var/
+var/*
+!var/data.db
 templates/
+
