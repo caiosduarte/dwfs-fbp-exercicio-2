@@ -6,11 +6,8 @@ use App\Message\GetUserMessage;
 use App\Message\RemoveUserMessage;
 use App\Message\ListUsersMessage;
 use App\Message\CreateUserMessage;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
+use App\Message\UpdateUserMessage;
 
-
-
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +15,6 @@ use Symfony\Component\Routing\Annotation\Route;
 
 use App\Service\DeserializeUserService;
 use App\Service\SerializeUserService;
-use App\Service\UpdateUserService;
 
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Envelope;
@@ -29,15 +25,9 @@ use GetObjectsFromWrapper as GlobalGetObjectsFromWrapper;
 class UserController
 {
     private MessageBusInterface $bus;
-    private EntityManagerInterface $manager;
-    private ValidatorInterface $validator;
 
-    public function __construct(EntityManagerInterface $manager, 
-        ValidatorInterface $validator, 
-        MessageBusInterface $bus)
+    public function __construct(MessageBusInterface $bus)
     {
-        $this->manager = $manager;
-        $this->validator = $validator;
         $this->bus = $bus;
     }
 
@@ -59,7 +49,7 @@ class UserController
         $data = json_decode($request->getContent(), true);
         $data['id'] = $id;
 
-        $wrapper = $this->bus->dispatch(new CreateUserMessage(DeserializeUserService::execute($data, $id)));     
+        $wrapper = $this->bus->dispatch(new UpdateUserMessage(DeserializeUserService::execute($data, $id)));     
 
         $user = GlobalGetObjectsFromWrapper::execute($wrapper);
 

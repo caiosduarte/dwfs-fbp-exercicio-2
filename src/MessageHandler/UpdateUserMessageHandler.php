@@ -5,6 +5,7 @@ namespace App\MessageHandler;
 use App\Message\UpdateUserMessage;
 use App\Message\GetUserMessage;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -22,19 +23,27 @@ final class UpdateUserMessageHandler implements MessageHandlerInterface
 {
     private EntityManagerInterface $manager;
     private ValidatorInterface $validator;
+    private MessageBusInterface $bus;
 
     public function __construct(EntityManagerInterface $manager, 
-        ValidatorInterface $validator)
+        ValidatorInterface $validator,
+        MessageBusInterface $bus)
     {
         $this->manager = $manager;
         $this->validator = $validator;
+        $this->bus = $bus;
     }    
     public function __invoke(UpdateUserMessage $message): User
     {
         $validatedUser = (new ValidateUserService($this->manager, $this->validator))->execute($message->getUser());
 
-       
-        $user = GlobalGetObjectsFromWrapper::execute($this->bus->dispatch(new GetUserMessage($message->getId())));
+        $id = ($validatedUser->getId() !== null? $validatedUser->getId(): $message->getId());
+
+        if(is_null($id)) {
+            throw new AppError('Id is not valid.', 400);
+        }
+
+        $user = GlobalGetObjectsFromWrapper::execute($this->bus->dispatch(new GetUserMessage($id)));      
 
         $user->setName($validatedUser->getName());
         $user->setEmail($validatedUser->getEmail());
@@ -51,6 +60,7 @@ final class UpdateUserMessageHandler implements MessageHandlerInterface
             $this->manager->persist($user);          
             $this->manager->flush();
             $this->manager->commit();
+            
         }
         catch(\Exception $ex) 
         {
