@@ -3,8 +3,7 @@
 namespace App\Error;
 
 
-
-class AppError extends \Exception
+class AppError extends \Exception  
 {
     private array $errors;
 

@@ -19,16 +19,12 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Service\DeserializeUserService;
 use App\Service\SerializeUserService;
 use App\Service\UpdateUserService;
-use App\Service\CreateUserService;
 
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\Messenger\Stamp\HandledStamp;
 use Symfony\Component\Messenger\Envelope;
 
 use App\Service\GetObjectsFromWrapper;
 use GetObjectsFromWrapper as GlobalGetObjectsFromWrapper;
-
-use App\Entity\User;
 
 class UserController
 {
@@ -63,8 +59,9 @@ class UserController
         $data = json_decode($request->getContent(), true);
         $data['id'] = $id;
 
-        $updateUserService = new UpdateUserService($this->manager, $this->validator);
-        $user = $updateUserService->execute(DeserializeUserService::execute($data));
+        $wrapper = $this->bus->dispatch(new CreateUserMessage(DeserializeUserService::execute($data, $id)));     
+
+        $user = GlobalGetObjectsFromWrapper::execute($wrapper);
 
         return new JsonResponse(SerializeUserService::execute($user), Response::HTTP_OK);        
     }
