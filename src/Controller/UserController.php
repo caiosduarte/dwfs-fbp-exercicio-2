@@ -5,22 +5,16 @@ namespace App\Controller;
 use App\Message\GetUserMessage;
 use App\Message\RemoveUserMessage;
 use App\Message\ListUsersMessage;
-use App\Message\CreateUserMessage;
-use App\Message\UpdateUserMessage;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-use App\Service\DeserializeUserService;
-use App\Service\SerializeUserService;
+
+use App\Service\GetSerializedFromWrapper;
 
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\Messenger\Envelope;
-
-use App\Service\GetObjectsFromWrapper;
-use GetObjectsFromWrapper as GlobalGetObjectsFromWrapper;
 
 class UserController
 {
@@ -42,44 +36,13 @@ class UserController
     }    
 
     /**
-     * @Route("/users/{id}", methods={"PUT"})
-     */
-    public function update(Request $request, int $id) {
-
-        $data = json_decode($request->getContent(), true);
-        $data['id'] = $id;
-
-        $wrapper = $this->bus->dispatch(new UpdateUserMessage(DeserializeUserService::execute($data, $id)));     
-
-        $user = GlobalGetObjectsFromWrapper::execute($wrapper);
-
-        return new JsonResponse(SerializeUserService::execute($user), Response::HTTP_OK);        
-    }
-
-    /**
-     * @Route("/users", methods={"POST"})
-     */
-    public function create(Request $request): Response 
-    {
-        $data = json_decode($request->getContent(), true);
-
-        $wrapper = $this->bus->dispatch(new CreateUserMessage(DeserializeUserService::execute($data)));     
-
-        $user = GlobalGetObjectsFromWrapper::execute($wrapper);
-
-        return new JsonResponse($this->getSerializedFromWrapper($wrapper), Response::HTTP_CREATED, [            
-            "Location" => $request->getUriForPath("/users/" . $user->getId())
-        ]); 
-    }
-
-    /**
      * @Route("/users", methods={"GET"})
      */
     public function index(): Response 
     {
         $wrapper = $this->bus->dispatch(new ListUsersMessage()); 
 
-        return new JsonResponse($this->getSerializedFromWrapper($wrapper), Response::HTTP_OK);
+        return new JsonResponse(GetSerializedFromWrapper::execute($wrapper), Response::HTTP_OK);
     } 
 
     /**
@@ -89,25 +52,8 @@ class UserController
     {
         $wrapper =  $this->bus->dispatch(new GetUserMessage($id));        
                 
-        return new JsonResponse($this->getSerializedFromWrapper($wrapper));
+        return new JsonResponse(GetSerializedFromWrapper::execute($wrapper), Response::HTTP_OK);
     }    
 
-    private function getSerializedFromWrapper(Envelope $wrapper) {
-        $result = GlobalGetObjectsFromWrapper::execute($wrapper);
 
-        $serialized = [];
-        if(is_array($result)) {
-            
-            foreach($result as $user)
-            {
-                $serialized[] = SerializeUserService::execute($user);
-            }           
-        }
-        else 
-        {
-            $serialized = SerializeUserService::execute($result);
-        }
-
-        return $serialized;
-    }
 }
