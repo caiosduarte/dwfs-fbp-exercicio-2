@@ -19,7 +19,7 @@ final class ListUsersMessageHandler implements MessageHandlerInterface
         $this->manager = $manager;
     }  
 
-    public function __invoke(ListUsersMessage $message)
+    public function __invoke(ListUsersMessage $message): ?array
     {
         return $this->manager->getRepository(User::class)->findAll();
     }

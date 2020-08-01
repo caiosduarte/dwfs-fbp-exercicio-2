@@ -5,6 +5,7 @@ namespace App\EventListener;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Messenger\Exception\HandlerFailedException;
 
 use App\Error\AppError;
 
@@ -17,14 +18,14 @@ class ExceptionListener
         $responseData = [
             'status' => 'error',
             'code' => $exception->getCode(),
-            'message' => 'Internal server error.'            
+            'message' => 'Internal server error.' 
         ];         
 
-        if ($exception instanceof AppError || $exception->getCode() != 500) {
+        if (($exception instanceof AppError || $exception instanceof HandlerFailedException) || $exception->getCode() != 500) {
             $responseData['message'] = $exception->getMessage();
             if($exception instanceof AppError && count($exception->getErrors()) > 0) {
              $responseData['errors'] = $exception->getErrors();
-            }
+            }   
             $event->setResponse(new JsonResponse($responseData, $exception->getCode()));
 
         } else {
@@ -35,7 +36,7 @@ class ExceptionListener
             );
             
             $statusCode =  Response::HTTP_INTERNAL_SERVER_ERROR;
-            if ($exception->getCode() == 0 && strpos($exception->getMessage(), "No route found for") !== false) {
+            if ($exception->getCode() === 0 && strpos($exception->getMessage(), "No route found for") !== false) {
                 $responseData['message'] = $exception->getMessage();
                 $statusCode =  Response::HTTP_NOT_IMPLEMENTED;
             }

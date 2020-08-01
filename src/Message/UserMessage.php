@@ -11,6 +11,6 @@ interface UserMessage
      */
 
     public function __construct(User $user, string $id = null);
-    public function getId(): int;
+    public function getId();
     public function getUser(): User;
 }

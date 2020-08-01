@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Message\GetUserMessage;
 use App\Message\RemoveUserMessage;
 use App\Message\ListUsersMessage;
+use App\Message\CreateUserMessage;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 
@@ -26,6 +27,8 @@ use Symfony\Component\Messenger\Envelope;
 
 use App\Service\GetObjectsFromWrapper;
 use GetObjectsFromWrapper as GlobalGetObjectsFromWrapper;
+
+use App\Entity\User;
 
 class UserController
 {
@@ -73,12 +76,13 @@ class UserController
     {
         $data = json_decode($request->getContent(), true);
 
-        $updateUserService = new CreateUserService($this->manager, $this->validator);
-        $user = $updateUserService->execute(DeserializeUserService::execute($data));
+        $wrapper = $this->bus->dispatch(new CreateUserMessage(DeserializeUserService::execute($data)));     
 
-        return new JsonResponse(SerializeUserService::execute($user), Response::HTTP_CREATED, [            
+        $user = GlobalGetObjectsFromWrapper::execute($wrapper);
+
+        return new JsonResponse($this->getSerializedFromWrapper($wrapper), Response::HTTP_CREATED, [            
             "Location" => $request->getUriForPath("/users/" . $user->getId())
-        ]);
+        ]); 
     }
 
     /**
@@ -86,7 +90,7 @@ class UserController
      */
     public function index(): Response 
     {
-        $wrapper =  $this->bus->dispatch(new ListUsersMessage()); 
+        $wrapper = $this->bus->dispatch(new ListUsersMessage()); 
 
         return new JsonResponse($this->getSerializedFromWrapper($wrapper), Response::HTTP_OK);
     } 
